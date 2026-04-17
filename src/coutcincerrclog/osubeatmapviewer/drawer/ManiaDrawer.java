@@ -231,7 +231,7 @@ public class ManiaDrawer extends Drawer {
             for (TimingPoint timingPoint : beatmap.timingPoints) {
                 if (timingPoint.uninherited) {
                     for (Vec2D coord : getDrawCoordinates(startTime, timingPoint.time))
-                        toDrawnBPM.put(coord, 60000 / timingPoint.beatLength);
+                        toDrawnBPM.put(coord, Math.abs(60000 / timingPoint.beatLength));
                     currentBeatLength = timingPoint.beatLength;
                 } else {
                     for (Vec2D coord : getDrawCoordinates(startTime, timingPoint.time))

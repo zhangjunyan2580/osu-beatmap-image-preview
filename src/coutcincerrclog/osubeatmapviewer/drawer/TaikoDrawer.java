@@ -23,7 +23,7 @@ public class TaikoDrawer extends Drawer {
     public static final int RIGHT_PADDING = 50;
     public static final int BEATS_PER_ROW = 16;
 
-    public static final int ROW_START = 100;
+    public static final int ROW_START = 150;
     public static final int ROW_BOUNDARY_HEIGHT = 1;
     public static final int ROW_HEIGHT = 33;
     public static final int ROW_SPACING = 70;
@@ -33,6 +33,7 @@ public class TaikoDrawer extends Drawer {
     public static final int INHERITED_MAX_LENGTH = 50;
     public static final int INHERITED_UNIT_LENGTH = 15;
     public static final int INHERITED_MIN_LENGTH = 3;
+    public static final int UNINHERITED_WIDTH = 3;
 
     public static final int FINISHER_RADIUS = 15;
     public static final int FINISHER_INTERIOR_RADIUS = 12;
@@ -58,6 +59,8 @@ public class TaikoDrawer extends Drawer {
 
     public static final Color INHERITED_TIMING_COLOR = new Color(0x87DA28);
     public static final Color UNINHERITED_TIMING_COLOR = new Color(0xE13030);
+
+    public static final Font NUMBER_FONT = new Font("Consolas", Font.PLAIN, 10);
 
     @Override
     public Dimension getPreferredSize(Beatmap beatmap, Settings settings) {
@@ -160,12 +163,43 @@ public class TaikoDrawer extends Drawer {
                     int y = getRowStartY(coord.y);
                     if (beat % currentTimingPoint.meter == 0) {
                         g.setColor(MEASURE_LINE_COLOR);
-                        g.fillRect(coord.x - 1, y, 3, ROW_HEIGHT + 2 * ROW_BOUNDARY_HEIGHT);
+                        g.fillRect(coord.x - UNINHERITED_WIDTH / 2, y, UNINHERITED_WIDTH, ROW_HEIGHT + 2 * ROW_BOUNDARY_HEIGHT);
                     } else {
                         g.setColor(BEAT_LINE_COLOR);
                         g.drawLine(coord.x, y + ROW_BOUNDARY_HEIGHT, coord.x, y + ROW_BOUNDARY_HEIGHT + ROW_HEIGHT - 1);
                     }
                 }
+            }
+        }
+
+        {
+            List<Integer> times = new ArrayList<>();
+            for (TimingPoint timingPoint : beatmap.timingPoints)
+                if (!timingPoint.uninherited)
+                    times.add((int) Math.round(timingPoint.time));
+            Map<Integer, Double> timeToBeatsMapping = getTimeToBeatsMapping(uninheritedPoints, bpm, cumulativeBeats, times);
+            g.setColor(INHERITED_TIMING_COLOR);
+            for (TimingPoint timingPoint : beatmap.timingPoints) {
+                if (!timingPoint.uninherited) {
+                    Vec2D coord = getBeatCoordinates(timeToBeatsMapping.get((int) Math.round(timingPoint.time)));
+                    int y = getRowStartY(coord.y);
+                    float multiplier = 100 / Math.max(10, Math.min(10000, (float) -timingPoint.beatLength));
+                    int length = Math.max(INHERITED_MIN_LENGTH, Math.min(INHERITED_MAX_LENGTH, Math.round(multiplier * INHERITED_UNIT_LENGTH)));
+                    g.drawLine(coord.x, y - length, coord.x, y - 1);
+                }
+            }
+            g.setColor(UNINHERITED_TIMING_COLOR);
+            g.setFont(NUMBER_FONT);
+            for (int i = 0; i < uninheritedPoints.size(); ++i) {
+                TimingPoint timingPoint = uninheritedPoints.get(i);
+                double curBPM = Math.abs(60000 / timingPoint.beatLength);
+                String BPMString = curBPM >= 10000 ? "inf" :
+                        curBPM < 0.1 ? "0" :
+                        String.format("%.5g", curBPM);
+                Vec2D coord = getBeatCoordinates(cumulativeBeats[i]);
+                int y = getRowStartY(coord.y);
+                g.fillRect(coord.x - UNINHERITED_WIDTH / 2, y - UNINHERITED_LENGTH, UNINHERITED_WIDTH, UNINHERITED_LENGTH + ROW_HEIGHT + ROW_BOUNDARY_HEIGHT * 2);
+                g.drawString(BPMString, coord.x + 2, y - INHERITED_MAX_LENGTH - 1);
             }
         }
 
