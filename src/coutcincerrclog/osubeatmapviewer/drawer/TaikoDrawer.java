@@ -138,7 +138,6 @@ public class TaikoDrawer extends Drawer {
         }
 
         {
-            Map<Integer, Double> timeToBeatsMapping = new HashMap<>();
             List<Integer> times = new ArrayList<>();
             for (HitObject hitObject : beatmap.processedHitObjects) {
                 if (hitObject instanceof TaikoHitCircle || hitObject instanceof TaikoSpinner)
@@ -148,20 +147,7 @@ public class TaikoDrawer extends Drawer {
                     times.add(((TaikoDrumroll) hitObject).endTime);
                 }
             }
-            times = times.stream().sorted().distinct().collect(Collectors.toList());
-            int currentTimingPointIndex = 0;
-            double currentBeatLength = getStandardizedBeatLength(uninheritedPoints.get(0).beatLength, 60000. / bpm);
-            double currentTimingTime = uninheritedPoints.get(0).time;
-            TimingPoint nextTimingPoint = uninheritedPoints.size() == 1 ? null : uninheritedPoints.get(1);
-            for (int time : times) {
-                while (nextTimingPoint != null && time >= nextTimingPoint.time) {
-                    ++currentTimingPointIndex;
-                    currentTimingTime = nextTimingPoint.time;
-                    currentBeatLength = getStandardizedBeatLength(nextTimingPoint.beatLength, 60000. / bpm);
-                    nextTimingPoint = currentTimingPointIndex == uninheritedPoints.size() - 1 ? null : uninheritedPoints.get(currentTimingPointIndex + 1);
-                }
-                timeToBeatsMapping.put(time, cumulativeBeats[currentTimingPointIndex] + (time - currentTimingTime) / currentBeatLength);
-            }
+            Map<Integer, Double> timeToBeatsMapping = getTimeToBeatsMapping(uninheritedPoints, bpm, cumulativeBeats, times);
             for (int i = beatmap.processedHitObjects.size() - 1; i >= 0; --i) {
                 HitObject hitObject = beatmap.processedHitObjects.get(i);
                 if (hitObject instanceof TaikoHitCircle) {
@@ -183,7 +169,7 @@ public class TaikoDrawer extends Drawer {
                     else {
                         drawRollRectangle(start.x, WIDTH - RIGHT_PADDING, start.y, g, radius, interiorRadius);
                         drawRollRectangle(LEFT_PADDING, end.x, end.y, g, radius, interiorRadius);
-                        for (int row = start.y; row < end.y; ++row)
+                        for (int row = start.y + 1; row < end.y; ++row)
                             drawRollRectangle(LEFT_PADDING, WIDTH - RIGHT_PADDING, row, g, radius, interiorRadius);
                     }
                     drawCircle(startBeats, g, radius, interiorRadius, DRUMROLL_COLOR);
@@ -241,6 +227,25 @@ public class TaikoDrawer extends Drawer {
         g.fillRect(startX, y + interiorRadius + 1, endX - startX + 1, radius - interiorRadius);
         g.setColor(DRUMROLL_COLOR);
         g.fillRect(startX, y - interiorRadius, endX - startX + 1, 2 * interiorRadius + 1);
+    }
+
+    public static Map<Integer, Double> getTimeToBeatsMapping(List<TimingPoint> uninheritedPoints, int bpm, double[] cumulativeBeats, List<Integer> times) {
+        Map<Integer, Double> timeToBeatsMapping = new HashMap<>();
+        times = times.stream().sorted().distinct().collect(Collectors.toList());
+        int currentTimingPointIndex = 0;
+        double currentBeatLength = getStandardizedBeatLength(uninheritedPoints.get(0).beatLength, 60000. / bpm);
+        double currentTimingTime = uninheritedPoints.get(0).time;
+        TimingPoint nextTimingPoint = uninheritedPoints.size() == 1 ? null : uninheritedPoints.get(1);
+        for (int time : times) {
+            while (nextTimingPoint != null && time >= nextTimingPoint.time) {
+                ++currentTimingPointIndex;
+                currentTimingTime = nextTimingPoint.time;
+                currentBeatLength = getStandardizedBeatLength(nextTimingPoint.beatLength, 60000. / bpm);
+                nextTimingPoint = currentTimingPointIndex == uninheritedPoints.size() - 1 ? null : uninheritedPoints.get(currentTimingPointIndex + 1);
+            }
+            timeToBeatsMapping.put(time, cumulativeBeats[currentTimingPointIndex] + (time - currentTimingTime) / currentBeatLength);
+        }
+        return timeToBeatsMapping;
     }
 
 }
