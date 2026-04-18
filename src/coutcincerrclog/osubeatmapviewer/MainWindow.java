@@ -1,5 +1,6 @@
 package coutcincerrclog.osubeatmapviewer;
 
+import coutcincerrclog.osubeatmapviewer.drawer.CatchDrawer;
 import coutcincerrclog.osubeatmapviewer.drawer.Drawer;
 import coutcincerrclog.osubeatmapviewer.drawer.ManiaDrawer;
 import coutcincerrclog.osubeatmapviewer.drawer.TaikoDrawer;
@@ -8,6 +9,7 @@ import coutcincerrclog.osubeatmapviewer.parser.Beatmap;
 import coutcincerrclog.osubeatmapviewer.parser.BeatmapParser;
 import coutcincerrclog.osubeatmapviewer.parser.hitobjects.HitObject;
 import coutcincerrclog.osubeatmapviewer.parser.hitobjects.HitObjectConverter;
+import coutcincerrclog.osubeatmapviewer.parser.hitobjects.fruits.CatchConverter;
 import coutcincerrclog.osubeatmapviewer.parser.hitobjects.mania.ManiaConverter;
 import coutcincerrclog.osubeatmapviewer.parser.hitobjects.taiko.TaikoConverter;
 import coutcincerrclog.osubeatmapviewer.util.ClipboardUtil;
@@ -234,14 +236,15 @@ public class MainWindow {
                     break;
 
                 case 2:
-                    throw new UnsupportedOperationException("osu!catch support is not yet implemented");
+                    converter = new CatchConverter(beatmap, settings);
+                    break;
 
                 case 3:
                     converter = new ManiaConverter(beatmap, settings);
                     break;
 
                 default:
-                    throw new UnsupportedOperationException();
+                    throw new UnsupportedOperationException("Invalid beatmap mode: " + beatmap.mode);
             }
 
             beatmap.processedHitObjects.clear();
@@ -262,14 +265,15 @@ public class MainWindow {
                     break;
 
                 case 2:
-                    throw new UnsupportedOperationException("osu!catch support is not yet implemented");
+                    drawer = new CatchDrawer();
+                    break;
 
                 case 3:
                     drawer = new ManiaDrawer();
                     break;
 
                 default:
-                    throw new UnsupportedOperationException();
+                    throw new UnsupportedOperationException("Invalid beatmap mode: " + beatmap.mode);
             }
 
             Dimension dimensions = drawer.getPreferredSize(beatmap, settings);

@@ -74,8 +74,8 @@ public class TaikoDrawer extends Drawer {
 
         HitObject startObject = beatmap.processedHitObjects.get(0);
         int paddingMeasures = startObject.time >= firstTimingPoint.time ? 0 :
-                (int) Math.ceil((firstTimingPoint.time - startObject.time - 1) / firstTimingPoint.beatLength);
-        int startTime = (int) Math.round(firstTimingPoint.time - paddingMeasures * firstTimingPoint.beatLength);
+                (int) Math.ceil((firstTimingPoint.time - startObject.time - 1) / firstTimingPoint.beatLength / firstTimingPoint.meter);
+        int startTime = (int) Math.round(firstTimingPoint.time - paddingMeasures * firstTimingPoint.beatLength * firstTimingPoint.meter);
         int endTime = beatmap.processedHitObjects.stream().mapToInt(hitObject -> {
             if (hitObject instanceof TaikoDrumroll)
                 return Math.max(hitObject.time, ((TaikoDrumroll) hitObject).endTime);

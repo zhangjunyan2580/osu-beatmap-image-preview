@@ -43,7 +43,7 @@ public class TaikoConverter extends HitObjectConverter {
         drumroll.endTime = drumroll.time + (int) (l / v * b);
         if (!convert)
             return Collections.singletonList(drumroll);
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("osu!taiko convert support is not yet implemented");
     }
 
     @Override

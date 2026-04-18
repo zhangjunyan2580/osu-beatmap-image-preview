@@ -27,8 +27,7 @@ public class ManiaConverter extends HitObjectConverter {
         if (!convert) {
             return Collections.singleton(new ManiaHitCircle(raw.time, (int) Math.min(Math.floor(raw.pos.x * columnCount / 512), columnCount - 1)));
         }
-        // TODO: Add converts
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("osu!mania convert support is not yet implemented");
     }
 
     @Override
@@ -46,8 +45,7 @@ public class ManiaConverter extends HitObjectConverter {
         if (!convert) {
             return Collections.singleton(new ManiaHold(raw.time, raw.endTime, Math.min((int) Math.floor(raw.pos.x * columnCount / 512), columnCount - 1)));
         }
-        // TODO: Add converts
-        throw new UnsupportedOperationException();
+        throw new UnsupportedOperationException("osu!mania convert support is not yet implemented");
     }
 
     @Override
