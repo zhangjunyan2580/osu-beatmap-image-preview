@@ -77,7 +77,7 @@ public class CatchConverter extends HitObjectConverter {
     @Override
     public void postProcessing() {
         double adjustedCS = settings.modEZHR == Settings.MOD_EZ ? beatmap.circleSize / 2 :
-                settings.modEZHR == Settings.MOD_NM ? beatmap.circleSize : beatmap.circleSize * 1.4;
+                settings.modEZHR == Settings.MOD_NM ? beatmap.circleSize : beatmap.circleSize * 1.3;
         adjustedCS = Math.max(0, Math.min(10, adjustedCS));
         float catcherWidth = (float) (106.75f * (1.7f - 0.14f * adjustedCS));
         float halfCatcherWidth = catcherWidth / 2;
