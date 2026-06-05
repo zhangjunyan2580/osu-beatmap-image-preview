@@ -10,6 +10,7 @@ import coutcincerrclog.osubeatmapviewer.parser.hitobjects.generic.Slider;
 import coutcincerrclog.osubeatmapviewer.parser.hitobjects.generic.Spinner;
 import coutcincerrclog.osubeatmapviewer.util.MathUtil;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
@@ -27,9 +28,13 @@ public class TaikoConverter extends HitObjectConverter {
         beatmap.sliderMultiplier *= 1.4;
     }
 
+    private static TaikoHitCircle createHitCircle(int time, int soundType) {
+        return new TaikoHitCircle(time, (soundType & ~5) != 0, (soundType & 4) != 0);
+    }
+
     @Override
     public Collection<HitObject> convertCircle(HitCircle raw) {
-        return Collections.singletonList(new TaikoHitCircle(raw.time, (raw.soundType & ~5) != 0, (raw.soundType & 4) != 0));
+        return Collections.singletonList(createHitCircle(raw.time, raw.soundType));
     }
 
     @Override
@@ -38,34 +43,50 @@ public class TaikoConverter extends HitObjectConverter {
         TaikoDrumroll drumroll = new TaikoDrumroll(raw.time, raw.time, (raw.soundType & 4) != 0, raw);
 
         double l = raw.length * raw.repeatCount;
-        double v = 100 * beatmap.sliderMultiplier;
+        double v2 = 100 * beatmap.sliderMultiplier;
         double b = beatmap.beatLengthAt(raw.time);
-        drumroll.endTime = drumroll.time + (int) (l / v * b);
+        drumroll.endTime = drumroll.time + (int) (l / v2 * b);
         if (!convert)
             return Collections.singletonList(drumroll);
-        throw new UnsupportedOperationException("osu!taiko convert support is not yet implemented");
+
+        double v = beatmap.sliderVelocityAt(raw.time);
+        b = beatmap.beatLengthAt(raw.time, false);
+        double skipPeriod = Math.min(b / beatmap.sliderTickRate, (double) (drumroll.endTime - drumroll.time) / raw.repeatCount);
+        if (skipPeriod > 0 && l / v * 1000 < 2 * b) {
+            ArrayList<HitObject> convertedHitObjects = new ArrayList<>();
+            int i = 0;
+            for (double j = drumroll.time; j <= drumroll.endTime + skipPeriod / 8; j += skipPeriod) {
+                TaikoHitCircle h;
+                if (raw.unifiedSoundAddition) {
+                    h = createHitCircle((int) j, raw.soundType);
+                } else {
+                    h = createHitCircle((int)j, raw.sounds.get(i));
+                    i = (i + 1) % raw.sounds.size();
+                }
+                convertedHitObjects.add(h);
+            }
+            return convertedHitObjects;
+        }
+        return Collections.singletonList(drumroll);
     }
 
     @Override
     public Collection<HitObject> convertSpinner(Spinner raw) {
-        if (!convert) {
-            TaikoSpinner spinner = new TaikoSpinner(raw.time, raw.endTime);
-            double spinnerRotationRatio = MathUtil.mapDifficultyRange(beatmap.overallDifficulty, 3, 5, 7.5, settings.modEZHR);
-            int rotationRequirement = (int) ((float) (raw.endTime - raw.time) / 1000 * spinnerRotationRatio);
-            rotationRequirement = Math.max(1, (int) (rotationRequirement * 1.65f));
-            switch (settings.modHTDT) {
-                case Settings.MOD_DT:
-                    rotationRequirement = Math.max(1, (int) (rotationRequirement * 0.75f));
-                    break;
+        TaikoSpinner spinner = new TaikoSpinner(raw.time, raw.endTime);
+        double spinnerRotationRatio = MathUtil.mapDifficultyRange(beatmap.overallDifficulty, 3, 5, 7.5, settings.modEZHR);
+        int rotationRequirement = (int) ((float) (raw.endTime - raw.time) / 1000 * spinnerRotationRatio);
+        rotationRequirement = Math.max(1, (int) (rotationRequirement * 1.65f));
+        switch (settings.modHTDT) {
+            case Settings.MOD_DT:
+                rotationRequirement = Math.max(1, (int) (rotationRequirement * 0.75f));
+                break;
 
-                case Settings.MOD_HT:
-                    rotationRequirement = Math.max(1, (int) (rotationRequirement * 1.5f));
-                    break;
-            }
-            spinner.spinCount = rotationRequirement;
-            return Collections.singletonList(spinner);
+            case Settings.MOD_HT:
+                rotationRequirement = Math.max(1, (int) (rotationRequirement * 1.5f));
+                break;
         }
-        throw new UnsupportedOperationException();
+        spinner.spinCount = rotationRequirement;
+        return Collections.singletonList(spinner);
     }
 
     @Override

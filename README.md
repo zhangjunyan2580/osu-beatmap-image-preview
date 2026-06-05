@@ -4,7 +4,7 @@ Features:
 - [x] Preview taiko specific beatmaps
 - [x] Preview catch specific beatmaps
 - [x] Preview mania specific beatmaps
-- [ ] Preview taiko converted beatmaps
+- [x] Preview taiko converted beatmaps
 - [x] Preview catch converted beatmaps
 - [ ] Preview mania converted beatmaps
 - [x] Use local beatmap files (.osu)

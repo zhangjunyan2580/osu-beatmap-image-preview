@@ -33,6 +33,8 @@ public class Slider extends HitObject {
     public int volume;
     public String customSampleFile;
 
+    public boolean unifiedSoundAddition;
+
     public int endTime;
     public Vec2F pos2;
     public Vec2F endPos;
@@ -62,6 +64,8 @@ public class Slider extends HitObject {
         this.customSample = customSample;
         this.volume = volume;
         this.customSampleFile = customSampleFile;
+
+        this.unifiedSoundAddition = sounds == null || sounds.isEmpty();
     }
 
     public void updateCalculation(Beatmap beatmap, boolean flip) {
